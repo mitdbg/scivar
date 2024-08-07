@@ -1,9 +1,15 @@
 from nltk.tokenize import word_tokenize
 from collections import Counter
 from itertools import chain
-import json, copy
+from pathlib import Path
+import json, copy, re
+import pandas as pd
+
+patter = re.compile(r"[\.,=\(\)]")
 
 def token_level_entries(ref, pred):
+	ref = patter.sub("", ref).lower()
+	pred= patter.sub("", pred).lower()
 	ref = Counter(word_tokenize(ref))
 	pred = Counter(word_tokenize(pred))
 
@@ -21,7 +27,7 @@ def token_level_entries(ref, pred):
 def process_extractions(extractions):
 	if isinstance(extractions, str):
 		# This is Chunwei's format
-		extractions = extractions.replace(r"\\\\", r"\\")
+		# extractions = extractions.replace(r"\\\\", r"\\")
 		ret = list()
 		lines = extractions.split("\n")
 		for l in lines:
@@ -106,23 +112,36 @@ if __name__ == "__main__":
 		ds = json.load(f)
 		all_annotations = {b['all_text']:b['annotations'] for b in ds}
 
-	from pprint import pprint
-	from pathlib import Path
 
+	rows = []
 	for path in Path("eval").glob("*/noinfer/*.json"):
-
 		try:
 
 			with path.open() as f:
 				data = json.load(f)
+			method = path.stem
 
 			for block in data:
 				key = block["all_text"]
 				annotations = all_annotations[key]
 				b = process_block(annotations, block)
 				b['annotations'] = annotations
-				pprint(b)
-				print()
+				# pprint(b)
+				# print()
+				for s in b["scores"]:
+					row = {
+						'method': method,
+						'text': block['all_text'],
+						'doc':block['file'],
+						**s
+					}
+					rows.append(row)
 		except Exception as e:
 			print(e)
 
+	frame = pd.DataFrame(rows)
+	frame.to_csv("results.csv")
+	# stats = frame.groupby("method")[['p','r','f1']].agg("mean")
+	# # Percentage of completely missed 
+	# frame.groupby("method").agg(lambda )
+	print(stats)

@@ -70,6 +70,7 @@ def process_block(annotations, block):
 
 	scores = list()
 	used_predictions = set()
+	pair_wise_candidates = list()
 	for annotation in annotations:
 		ref, type_ = annotation[2], annotation[3]
 
@@ -82,6 +83,7 @@ def process_block(annotations, block):
 		pp = None
 
 		for pred in preds:
+			pair_wise_candidates.append({"text_id": block['id'], "annotation":ref, "ann_type": type_, "prediction":pred})
 			p, r, f1 = token_level_entries(ref, pred)
 			if f1 > max_f1:
 				max_p, max_r, max_f1 = p, r, f1
@@ -99,6 +101,7 @@ def process_block(annotations, block):
 			scores.append({"ref":None, "pred":pred, "p":0., "r":0., "f1":0.})
 	
 	block['scores'] = scores
+	block['pairs'] = pair_wise_candidates
 
 	return block
 
@@ -114,34 +117,41 @@ if __name__ == "__main__":
 
 
 	rows = []
+	all_candidates = []
 	for path in Path("eval").glob("*/noinfer/*.json"):
-		try:
+		
 
 			with path.open() as f:
 				data = json.load(f)
 			method = path.stem
 
 			for block in data:
+				
 				key = block["all_text"]
 				annotations = all_annotations[key]
-				b = process_block(annotations, block)
-				b['annotations'] = annotations
-				# pprint(b)
-				# print()
-				for s in b["scores"]:
-					row = {
-						'method': method,
-						'text': block['all_text'],
-						'doc':block['file'],
-						**s
-					}
-					rows.append(row)
-		except Exception as e:
-			print(e)
+				try:
+					b = process_block(annotations, block)
+					b['annotations'] = annotations
+					all_candidates.extend([{"method": method, **p} for p in b['pairs']])
+					for s in b["scores"]:
+						row = {
+							'method': method,
+							'text_id': block['id'],
+							'doc':block['file'],
+							**s
+						}
+						rows.append(row)
+				except Exception as e:
+					print(e, path.name)
+		
+
+
+	with open("candidates.json", 'w') as f:
+		json.dump(all_candidates, f, indent=2)
 
 	frame = pd.DataFrame(rows)
 	frame.to_csv("results.csv")
 	# stats = frame.groupby("method")[['p','r','f1']].agg("mean")
 	# # Percentage of completely missed 
 	# frame.groupby("method").agg(lambda )
-	print(stats)
+	# print(stats)

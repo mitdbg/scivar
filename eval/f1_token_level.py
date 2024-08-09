@@ -4,12 +4,17 @@ from itertools import chain
 from pathlib import Path
 import json, copy, re
 import pandas as pd
+from tqdm import tqdm
+from evaluate import load
 
-patter = re.compile(r"[\.,=\(\)]")
+pattern = re.compile(r"[\.,=\(\)]")
+vignette = re.compile(f"^\d+[\.,] ")
+bertscore = load("bertscore", device="mps")
 
 def token_level_entries(ref, pred):
-	ref = patter.sub("", ref).lower()
-	pred= patter.sub("", pred).lower()
+	pred = vignette.sub("", pred)
+	ref = pattern.sub("", ref).lower()
+	pred= pattern.sub("", pred).lower()
 	ref = Counter(word_tokenize(ref))
 	pred = Counter(word_tokenize(pred))
 
@@ -20,6 +25,8 @@ def token_level_entries(ref, pred):
 	p = tp/(tp+fp) if tp+fp > 0 else 0.
 	r = tp/(tp+fn) if tp+fn > 0 else 0.
 	f1 = 2*(p*r/(p+r)) if p+r > 0 else 0.
+
+	
 
 
 	return p, r, f1
@@ -37,9 +44,9 @@ def process_extractions(extractions):
 					var = tokens[0]
 					desc = tokens[1]
 					val = tokens[2]
-					if desc == "None":
+					if val.lower() not in {"none", "null"}:
 						ret.append([var, val, "var val"])
-					else:
+					if desc.lower() not in {"none", "null"}:
 						ret.append([var, desc, "var desc"])
 
 		return ret
@@ -47,7 +54,7 @@ def process_extractions(extractions):
 	else:
 		return extractions
 
-def process_block(annotations, block):
+def process_block(annotations, block, eval_type):
 	block = copy.deepcopy(block)
 
 	extractions = {
@@ -64,6 +71,9 @@ def process_block(annotations, block):
 			key = 'descs'
 		elif type_ == "var val":
 			key = 'vals'
+
+		if isinstance(val, str) and val.lower() in {"null", "none"}:
+			val = ""
 
 		extractions[key].append(f"{var} {val}")
 
@@ -89,6 +99,7 @@ def process_block(annotations, block):
 				max_p, max_r, max_f1 = p, r, f1
 				if f1 > 0:
 					pp = pred
+			
 
 		if pp:
 			used_predictions.add(pp)
@@ -102,6 +113,7 @@ def process_block(annotations, block):
 	
 	block['scores'] = scores
 	block['pairs'] = pair_wise_candidates
+
 
 	return block
 
@@ -118,19 +130,20 @@ if __name__ == "__main__":
 
 	rows = []
 	all_candidates = []
-	for path in Path("eval").glob("*/noinfer/*.json"):
+	eval = "bert"
+	for path in tqdm(Path("eval").glob("*/noinfer/*.json"), desc="Computing scores"):
 		
 
 			with path.open() as f:
 				data = json.load(f)
 			method = path.stem
 
-			for block in data:
+			for block in tqdm(data, desc="Processing blocks"):
 				
 				key = block["all_text"]
 				annotations = all_annotations[key]
 				try:
-					b = process_block(annotations, block)
+					b = process_block(annotations, block, eval_type=eval)
 					b['annotations'] = annotations
 					all_candidates.extend([{"method": method, **p} for p in b['pairs']])
 					for s in b["scores"]:
@@ -143,14 +156,21 @@ if __name__ == "__main__":
 						rows.append(row)
 				except Exception as e:
 					print(e, path.name)
+
+	# Compute BERT scores
+	references, predictions = list(), list()
+	for candidate in all_candidates:
+		references.append(candidate["annotation"])
+		predictions.append(candidate["prediction"])
 		
+	# bscores = bertscore.compute(references=references, predictions=predictions, lang="en")
 
 
 	with open("candidates.json", 'w') as f:
 		json.dump(all_candidates, f, indent=2)
 
 	frame = pd.DataFrame(rows)
-	frame.to_csv("results.csv")
+	frame.to_csv(f"results_token.csv")
 	# stats = frame.groupby("method")[['p','r','f1']].agg("mean")
 	# # Percentage of completely missed 
 	# frame.groupby("method").agg(lambda )

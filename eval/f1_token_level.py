@@ -26,8 +26,6 @@ def token_level_entries(ref, pred):
 	r = tp/(tp+fn) if tp+fn > 0 else 0.
 	f1 = 2*(p*r/(p+r)) if p+r > 0 else 0.
 
-	
-
 
 	return p, r, f1
 

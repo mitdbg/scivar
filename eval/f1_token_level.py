@@ -8,7 +8,7 @@ from tqdm import tqdm
 from evaluate import load
 
 pattern = re.compile(r"[\.,=\(\)]")
-vignette = re.compile(f"^\d+[\.,] ")
+vignette = re.compile(f"^[\s\d\*\-]+[\.,]?\s*")
 bertscore = load("bertscore", device="mps")
 
 def token_level_entries(ref, pred):

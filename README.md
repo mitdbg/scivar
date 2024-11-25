@@ -17,12 +17,14 @@ We hope this dataset serves as a valuable resource for researchers and practitio
 If you use this dataset in your research, please cite it as follows:
 
 ```
-@article{scivar2024,
-  title={A Dataset for Scientific Variable Extraction},
-  author={Authors, A. and B. and C.},
-  journal={...},
-  year={2024},
-  publisher={...}
+@misc{liu2024variableextractionmodelrecovery,
+      title={Variable Extraction for Model Recovery in Scientific Literature}, 
+      author={Chunwei Liu and Enrique Noriega-Atala and Adarsh Pyarelal and Clayton T Morrison and Mike Cafarella},
+      year={2024},
+      eprint={2411.14569},
+      archivePrefix={arXiv},
+      primaryClass={cs.IR},
+      url={https://arxiv.org/abs/2411.14569}, 
 }
 ```
 

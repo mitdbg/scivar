@@ -1,6 +1,6 @@
 # Scientific Variable Extraction Dataset
 
-Welcome to the repository for the Scientific Variable Extraction Dataset, as featured in our paper "A Dataset for Scientific Variable Extraction". This repository is structured to provide both the benchmark dataset and the corresponding evaluation results for various extraction approaches.
+Welcome to the repository for the Scientific Variable Extraction Dataset, as featured in our paper "[Variable Extraction for Model Recovery in Scientific Literature](https://arxiv.org/pdf/2411.14569)". This repository is structured to provide both the benchmark dataset and the corresponding evaluation results for various extraction approaches.
 
 ## Benchmark Dataset
 
@@ -17,7 +17,15 @@ We hope this dataset serves as a valuable resource for researchers and practitio
 If you use this dataset in your research, please cite it as follows:
 
 ```
-Anonymized
+@misc{liu2024variableextractionmodelrecovery,
+       title={Variable Extraction for Model Recovery in Scientific Literature}, 
+       author={Chunwei Liu and Enrique Noriega-Atala and Adarsh Pyarelal and Clayton T Morrison and Mike Cafarella},
+       year={2024},
+       eprint={2411.14569},
+       archivePrefix={arXiv},
+       primaryClass={cs.IR},
+       url={https://arxiv.org/abs/2411.14569}, 
+ }
 ```
 
 Thank you for your interest in our work, and we look forward to seeing how it contributes to your research endeavors.

@@ -8,7 +8,7 @@ This dataset comprises paragraphs extracted from 20 research papers focused on p
 
 ## Evaluation Results
 
-The evaluation results for the different approaches tested—including conventional machine learning techniques, large language model-based solutions, and their integrations—are detailed in the `evaluation` folder. These results are formatted as JSON files for ease of use and integration into further analysis.
+The evaluation results for the different approaches tested—including conventional machine learning techniques, large language model-based solutions, and their integrations ([Palimpzest](https://palimpzest.org/research/)) — are detailed in the `evaluation` folder. These results are formatted as JSON files for ease of use and integration into further analysis.
 
 We hope this dataset serves as a valuable resource for researchers and practitioners working on the extraction of scientific variables and enhances the understanding and application of machine learning in the domain of scientific research.
 
